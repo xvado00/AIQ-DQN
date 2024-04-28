@@ -12,13 +12,10 @@ Transition = namedtuple(
 class ReplayMemory(object):
     def __init__(self, capacity):
         self.memory = deque([], maxlen=capacity)
-        self.id = binascii.b2a_hex(os.urandom(8))
-        self.count = 0
 
     def push(self, *args):
         transition = Transition(*args)
         self.memory.append(transition)
-        self.count += 1
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
