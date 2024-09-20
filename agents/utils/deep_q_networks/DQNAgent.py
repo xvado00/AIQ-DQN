@@ -96,6 +96,7 @@ class DQNAgent(Agent):
             else (self.starting_epsilon - self.MIN_EPSILON) / self.episodes_till_min_decay
 
     def reset(self):
+        torch.set_num_threads(1)
         self.memory = ReplayMemory(10000)
         self.policy_net = NeuralNet(self.neural_input_size, self.num_actions,
                                     [self.neural_size_l1, self.neural_size_l2, self.neural_size_l3])
