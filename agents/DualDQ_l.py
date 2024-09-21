@@ -5,11 +5,15 @@ from agents.utils.deep_q_networks.neural_net import NeuralNet, get_optimizer
 
 
 class DualDQ_l(DQNAgent):
-    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length, neural_size_l1,
-                 neural_size_l2, neural_size_l3, use_rmsprop, history_len, tau, update_interval_length, Lambda=0.0,
-                 eligibility_strategy=0):
-        DQNAgent.__init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length,
-                              neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_len, Lambda, eligibility_strategy)
+    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length, min_epsilon,
+    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size,
+                 min_epsilon, episodes_till_min_decay,  # Epsilon decay vars
+                 neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_len,
+                 tau, update_interval_length, Lambda=0.0, eligibility_strategy=0):
+        DQNAgent.__init__(self, refm, disc_rate, learning_rate, gamma, batch_size,
+                          episodes_till_min_decay, min_epsilon,  # Epsilon decay vars
+                          neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_len,
+                          Lambda, eligibility_strategy)
         self.update_interval_length = int(update_interval_length)
         self.tau = float(tau)
         self.target_net = None
@@ -48,7 +52,7 @@ class DualDQ_l(DQNAgent):
 
         self.last_losses.append(loss.detach().item())
 
-        self.decrement_epsilon()
+        self.decay_epsilon_linear()
         self.steps_done += 1
 
         if self.steps_done % self.update_interval_length == 0:
@@ -74,8 +78,8 @@ class DualDQ_l(DQNAgent):
                 + str(self.learning_rate) + "," \
                 + str(self.gamma) + "," \
                 + str(self.batch_size) + "," \
-                + str(self.starting_epsilon) + "," \
                 + str(self.episodes_till_min_decay) + "," \
+                + str(self.min_epsilon) + "," \
                 + str(self.neural_size_l1) + "," \
                 + str(self.neural_size_l2) + "," \
                 + str(self.neural_size_l3) + "," \

@@ -1,8 +1,4 @@
 DQNConfig = {
-    # If agent uses liner decay epsilon will start at this value.
-    "start_epsilon": 1,
-    # If agent uses liner decay epsilon will end at this value.
-    "min_epsilon": 0.01,
     # Value that received reward will be divided with.
     "reward_divider": 100,
     # Will be Loss plotted?

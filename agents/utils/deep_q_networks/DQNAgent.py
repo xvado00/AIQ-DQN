@@ -12,12 +12,11 @@ from agents.utils.deep_q_networks.neural_net import get_criterion, NeuralNet, ge
 from agents.utils.deep_q_networks.plotting_tools import PlottingTools, PlotBuilder, SubplotBuilder, PlotType
 from agents.utils.deep_q_networks.replay_memory import ReplayMemory, Transition
 from agents.utils.deep_q_networks.string_hashing import generate_md5
+from agents.utils.epsilon_decay import EpsilonDecayMixin
 from agents.utils.observation_encoder import encode_observations_n_hot
 
 
-class DQNAgent(Agent):
-    START_EPSILON = DQNConfig["start_epsilon"]
-    MIN_EPSILON = DQNConfig["min_epsilon"]
+class DQNAgent(Agent, EpsilonDecayMixin):
     REWARD_DIVIDER = DQNConfig["reward_divider"]
     PLOT_Q_VALUES = DQNConfig["plot_Q_values"]
     PLOT_LOSS = DQNConfig["plot_rewards"]
@@ -32,9 +31,12 @@ class DQNAgent(Agent):
         "dutch"
     ]
 
-    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length, neural_size_l1,
-                 neural_size_l2, neural_size_l3, use_rmsprop, history_length=0, Lambda=0.0, eligibility_strategy=0):
+    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size,
+                 episodes_till_min_decay, min_epsilon,  # Epsilon decay vars
+                 neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_length=0,
+                 Lambda=0.0, eligibility_strategy=0):
         Agent.__init__(self, refm, disc_rate)
+        EpsilonDecayMixin.__init__(self, min_epsilon, episodes_till_min_decay)
         self.optimizer = None
         self.neural_size_l1 = int(neural_size_l1)
         self.neural_size_l2 = int(neural_size_l2)
@@ -61,12 +63,6 @@ class DQNAgent(Agent):
         self.eligibility_strategy = self.TRACES_METHODS[strat_int]
         self.uses_eligibility = self.Lambda > 0.0
 
-        # Epsilon
-        self.starting_epsilon = epsilon if epsilon > 0 else self.START_EPSILON
-        self.epsilon = self.starting_epsilon
-        self.has_epsilon_decay = epsilon_decay_length > 0
-        self.episodes_till_min_decay = int(epsilon_decay_length)
-
         if self.uses_eligibility:
             self.criterion = get_criterion(reduction='none')
         else:
@@ -92,10 +88,9 @@ class DQNAgent(Agent):
         self.rewards_given = list()
 
         self.plotting_tools = PlottingTools()
-        self.epsilon_linear_decay = 0 if self.episodes_till_min_decay == 0 \
-            else (self.starting_epsilon - self.MIN_EPSILON) / self.episodes_till_min_decay
 
     def reset(self):
+        EpsilonDecayMixin.reset(self)
         torch.set_num_threads(1)
         self.memory = ReplayMemory(10000)
         self.policy_net = NeuralNet(self.neural_input_size, self.num_actions,
@@ -111,7 +106,6 @@ class DQNAgent(Agent):
 
         self.prev_action = None
         self.steps_done = 0
-        self.epsilon = self.starting_epsilon
         self.eligibility = torch.zeros((self.batch_size, self.num_actions))
         self.reset_values_for_plots()
 
@@ -253,17 +247,6 @@ class DQNAgent(Agent):
         reward_batch = torch.cat(batch.reward)
         next_states = torch.cat(batch.next_state)
         return state_batch, action_batch, reward_batch, next_states
-
-    def decrement_epsilon(self):
-        """
-        Decrements epsilon by calculated step until it hits self.MIN_EPSILON
-        """
-        if not self.has_epsilon_decay:
-            return
-        if self.epsilon > self.MIN_EPSILON:
-            self.epsilon -= self.epsilon_linear_decay
-        else:
-            self.epsilon = self.MIN_EPSILON
 
     def learn_from_experience(self):
         """

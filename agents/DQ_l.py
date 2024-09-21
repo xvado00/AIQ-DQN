@@ -30,7 +30,7 @@ class DQ_l(DQNAgent):
 
         self.last_losses.append(loss.detach().item())
 
-        self.decrement_epsilon()
+        self.decay_epsilon_linear()
         self.steps_done += 1
 
     def __str__(self):
@@ -38,8 +38,8 @@ class DQ_l(DQNAgent):
                 + str(self.learning_rate) + "," \
                 + str(self.gamma) + "," \
                 + str(self.batch_size) + "," \
-                + str(self.starting_epsilon) + "," \
                 + str(self.episodes_till_min_decay) + "," \
+                + str(self.min_epsilon) + "," \
                 + str(self.neural_size_l1) + "," \
                 + str(self.neural_size_l2) + "," \
                 + str(self.neural_size_l3) + "," \
