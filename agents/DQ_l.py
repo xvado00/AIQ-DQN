@@ -34,31 +34,17 @@ class DQ_l(DQNAgent):
         self.steps_done += 1
 
     def __str__(self):
-        if self.eligibility_strategy is not None:
-            return "DQ_l(%.4f,%.2f,%d,%.3f,%d,%d,%d,%d,%d,%d,%.3f,%d)" % (
-                self.learning_rate,
-                self.gamma,
-                self.batch_size,
-                self.starting_epsilon,
-                self.episodes_till_min_decay,
-                self.neural_size_l1,
-                self.neural_size_l2,
-                self.neural_size_l3,
-                self.use_rmsprop,
-                self.history_len,
-                self.Lambda,
-                self.eligibility_strategy_index
-            )
-
-        return "DQ_l(%.4f,%.2f,%d,%.3f,%d,%d,%d,%d,%d,%d)" % (
-            self.learning_rate,
-            self.gamma,
-            self.batch_size,
-            self.starting_epsilon,
-            self.episodes_till_min_decay,
-            self.neural_size_l1,
-            self.neural_size_l2,
-            self.neural_size_l3,
-            self.use_rmsprop,
-            self.history_len
-        )
+        return "DQ_l(" \
+                + str(self.learning_rate) + "," \
+                + str(self.gamma) + "," \
+                + str(self.batch_size) + "," \
+                + str(self.starting_epsilon) + "," \
+                + str(self.episodes_till_min_decay) + "," \
+                + str(self.neural_size_l1) + "," \
+                + str(self.neural_size_l2) + "," \
+                + str(self.neural_size_l3) + "," \
+                + str(self.use_rmsprop) + "," \
+                + str(self.history_len) + "," \
+                + str(self.Lambda) + "," \
+                + str(self.eligibility_strategy_index) + \
+                ")"

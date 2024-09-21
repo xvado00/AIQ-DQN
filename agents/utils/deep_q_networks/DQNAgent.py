@@ -33,12 +33,12 @@ class DQNAgent(Agent):
     ]
 
     def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length, neural_size_l1,
-                 neural_size_l2, neural_size_l3, use_rmsprop, history_length=0, Lambda=0, eligibility_strategy=0):
+                 neural_size_l2, neural_size_l3, use_rmsprop, history_length=0, Lambda=0.0, eligibility_strategy=0):
         Agent.__init__(self, refm, disc_rate)
         self.optimizer = None
-        self.neural_size_l1 = neural_size_l1
-        self.neural_size_l2 = neural_size_l2
-        self.neural_size_l3 = neural_size_l3
+        self.neural_size_l1 = int(neural_size_l1)
+        self.neural_size_l2 = int(neural_size_l2)
+        self.neural_size_l3 = int(neural_size_l3)
         self.use_rmsprop = int(use_rmsprop)
         self.history_len = int(history_length)
         self.policy_net = None
@@ -65,7 +65,7 @@ class DQNAgent(Agent):
         self.starting_epsilon = epsilon if epsilon > 0 else self.START_EPSILON
         self.epsilon = self.starting_epsilon
         self.has_epsilon_decay = epsilon_decay_length > 0
-        self.episodes_till_min_decay = epsilon_decay_length
+        self.episodes_till_min_decay = int(epsilon_decay_length)
 
         if self.uses_eligibility:
             self.criterion = get_criterion(reduction='none')

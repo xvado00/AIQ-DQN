@@ -6,7 +6,7 @@ from agents.utils.deep_q_networks.neural_net import NeuralNet, get_optimizer
 
 class DualDQ_l(DQNAgent):
     def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length, neural_size_l1,
-                 neural_size_l2, neural_size_l3, use_rmsprop, history_len, tau, update_interval_length, Lambda=0,
+                 neural_size_l2, neural_size_l3, use_rmsprop, history_len, tau, update_interval_length, Lambda=0.0,
                  eligibility_strategy=0):
         DQNAgent.__init__(self, refm, disc_rate, learning_rate, gamma, batch_size, epsilon, epsilon_decay_length,
                               neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_len, Lambda, eligibility_strategy)
@@ -70,35 +70,19 @@ class DualDQ_l(DQNAgent):
         self.target_net.load_state_dict(target_net_state_dict)
 
     def __str__(self):
-        if self.eligibility_strategy is not None:
-            return "DualDQ_l(%.4f,%.2f,%d,%.3f,%d,%d,%d,%d,%d,%d,%.3f,%d,%.3f,%d)" % (
-                self.learning_rate,
-                self.gamma,
-                self.batch_size,
-                self.starting_epsilon,
-                self.episodes_till_min_decay,
-                self.neural_size_l1,
-                self.neural_size_l2,
-                self.neural_size_l3,
-                self.use_rmsprop,
-                self.history_len,
-                self.tau,
-                self.update_interval_length,
-                self.Lambda,
-                self.eligibility_strategy_index
-            )
-
-        return "DualDQ_l(%.4f,%.2f,%d,%.3f,%d,%d,%d,%d,%d,%d,%.3f,%d)" % (
-            self.learning_rate,
-            self.gamma,
-            self.batch_size,
-            self.starting_epsilon,
-            self.episodes_till_min_decay,
-            self.neural_size_l1,
-            self.neural_size_l2,
-            self.neural_size_l3,
-            self.use_rmsprop,
-            self.history_len,
-            self.tau,
-            self.update_interval_length
-        )
+        return "DualDQ_l(" \
+                + str(self.learning_rate) + "," \
+                + str(self.gamma) + "," \
+                + str(self.batch_size) + "," \
+                + str(self.starting_epsilon) + "," \
+                + str(self.episodes_till_min_decay) + "," \
+                + str(self.neural_size_l1) + "," \
+                + str(self.neural_size_l2) + "," \
+                + str(self.neural_size_l3) + "," \
+                + str(self.use_rmsprop) + "," \
+                + str(self.history_len) + "," \
+                + str(self.tau) + "," \
+                + str(self.update_interval_length) + "," \
+                + str(self.Lambda) + "," \
+                + str(self.eligibility_strategy_index) + "," \
+                ")"
