@@ -1,3 +1,11 @@
+
+#
+# Configuration function for Deep Q-Network agents.
+#
+# Copyright Michal Dvořák 2024
+# Released under GNU GPLv3
+#
+
 DQNConfig = {
     # Value that received reward will be divided with.
     "reward_divider": 100,

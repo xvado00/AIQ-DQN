@@ -1,3 +1,11 @@
+
+#
+# Neural Network Class and related functions for Deep Q-Network agents.
+#
+# Copyright Michal Dvořák 2024
+# Released under GNU GPLv3
+#
+
 import torch.optim
 from torch import nn
 

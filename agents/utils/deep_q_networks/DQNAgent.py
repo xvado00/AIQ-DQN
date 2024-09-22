@@ -1,3 +1,13 @@
+
+#
+# Deep Q-Network Agent Class for various Deep Q-learning agents.
+#
+# Copyright Michal Dvořák 2024
+# Copyright Ondřej Vadinský 2024
+# Copyright Jan Štipl 2024
+# Released under GNU GPLv3
+#
+
 import math
 import random
 

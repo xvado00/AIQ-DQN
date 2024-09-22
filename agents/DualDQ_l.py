@@ -1,3 +1,16 @@
+
+#
+# Dual Network Deep Q-learning agent
+# with policy and target deep Q-network, replay memory, epsilon decay and eligibility traces.
+# Human-level control through deep reinforcement learning
+#   by Volodymyr Mnih et al, 2015
+#
+# Copyright Michal Dvořák 2024
+# Copyright Ondřej Vadinský 2024
+# Copyright Jan Štipl 2024
+# Released under GNU GPLv3
+#
+
 import torch
 
 from agents.utils.deep_q_networks.DQNAgent import DQNAgent

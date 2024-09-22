@@ -1,3 +1,11 @@
+
+#
+# Replay Memory Class for Deep Q-Network agents.
+#
+# Copyright Michal Dvořák 2024
+# Released under GNU GPLv3
+#
+
 import random
 import binascii
 import os
