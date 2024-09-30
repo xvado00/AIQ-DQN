@@ -31,10 +31,37 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         "dutch"
     ]
 
-    def __init__(self, refm, disc_rate, learning_rate, gamma, batch_size,
-                 episodes_till_min_decay, min_epsilon,  # Epsilon decay vars
-                 neural_size_l1, neural_size_l2, neural_size_l3, use_rmsprop, history_length=0,
-                 Lambda=0.0, eligibility_strategy=0):
+    def __init__(self,
+                 refm,
+                 disc_rate,
+                 learning_rate,
+                 gamma,
+                 batch_size,
+                 min_epsilon,
+                 episodes_till_min_decay,
+                 neural_size_l1,
+                 neural_size_l2,
+                 neural_size_l3,
+                 use_rmsprop,
+                 history_length=0,
+                 Lambda=0.0,
+                 eligibility_strategy=0):
+        """
+        :param refm:
+        :param disc_rate:
+        :param learning_rate: Step size during training via gradient descent
+        :param gamma: Discount factor for future rewards
+        :param batch_size: Number of samples selected from replay memory for training
+        :param min_epsilon: Minimum value of epsilon for exploration-exploitation trade-off
+        :param episodes_till_min_decay: Steps over which epsilon decays to min_epsilon
+        :param neural_size_l1: Size of the first hidden layer
+        :param neural_size_l2: Size of the second hidden layer
+        :param neural_size_l3: Size of the third hidden layer (0 to omit)
+        :param use_rmsprop: 1 for RMSProp optimizer, 0 for ADAM
+        :param history_length: Length of observation history input to the neural network
+        :param Lambda: λ parameter for eligibility traces
+        :param eligibility_strategy: Strategy for eligibility traces (0: replacement, 1: accumulation, 2: Dutch)
+        """
         Agent.__init__(self, refm, disc_rate)
         EpsilonDecayMixin.__init__(self, min_epsilon, episodes_till_min_decay)
         self.optimizer = None

@@ -4,6 +4,23 @@ from agents.utils.deep_q_networks.DQNAgent import DQNAgent
 
 
 class DQ_l(DQNAgent):
+    """
+    Configuration based on Mnih et al, 2013
+    DQ_l(...,
+         learning_rate=0.0003,
+         gamma=0.99,
+         batch_size=32,
+         min_epsilon=0.01,
+         epsilon_decay_length=2000,
+         neural_size_l1=64,
+         neural_size_l2=512,
+         neural_size_l3=0,
+         use_rmsprop=1,
+         history_length=2,
+         Lambda=0.0,
+         eligibility_strategy=0)
+    DQ_l,0.0003,0.99,32,2000,0.01,64,512,0,1,2,0.0,0
+    """
     def learn_from_experience(self):
         if len(self.memory) < self.batch_size:
             return
@@ -38,8 +55,8 @@ class DQ_l(DQNAgent):
                 + str(self.learning_rate) + "," \
                 + str(self.gamma) + "," \
                 + str(self.batch_size) + "," \
-                + str(self.episodes_till_min_decay) + "," \
                 + str(self.min_epsilon) + "," \
+                + str(self.episodes_till_min_decay) + "," \
                 + str(self.neural_size_l1) + "," \
                 + str(self.neural_size_l2) + "," \
                 + str(self.neural_size_l3) + "," \
