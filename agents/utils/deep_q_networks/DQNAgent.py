@@ -1,6 +1,5 @@
 import math
 import random
-from collections import Counter
 
 import numpy as np
 import torch
@@ -9,20 +8,13 @@ from agents.Agent import Agent
 from agents.utils.deep_q_networks import eligibility_traces
 from agents.utils.deep_q_networks.dqn_config import DQNConfig
 from agents.utils.deep_q_networks.neural_net import get_criterion, NeuralNet, get_optimizer
-from agents.utils.deep_q_networks.plotting_tools import PlottingTools, PlotBuilder, SubplotBuilder, PlotType
 from agents.utils.deep_q_networks.replay_memory import ReplayMemory, Transition
-from agents.utils.deep_q_networks.string_hashing import generate_md5
 from agents.utils.epsilon_decay import EpsilonDecayMixin
 from agents.utils.observation_encoder import encode_observations_n_hot
 
 
 class DQNAgent(Agent, EpsilonDecayMixin):
     REWARD_DIVIDER = DQNConfig["reward_divider"]
-    PLOT_Q_VALUES = DQNConfig["plot_Q_values"]
-    PLOT_LOSS = DQNConfig["plot_rewards"]
-    PLOT_ACTIONS_TAKEN = DQNConfig["plot_actions_taken"]
-    PLOT_REWARDS = DQNConfig["plot_rewards"]
-    PLOT_PROBABILITY = DQNConfig["plot_probability"]
     STATE_FOR_Q_VALUES_SAVING = DQNConfig["state_for_Q_values_saving"]
 
     TRACES_METHODS = [
@@ -108,13 +100,11 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         if len(self.state_for_saving) > self.neural_input_size:
             self.state_for_saving = self.state_for_saving[:self.neural_input_size]
 
-        # Used for logging and plotting
+        # Used for logging
         self.last_losses_log = None
         self.q_values_arr_log = None
         self.actions_taken_log = None
         self.rewards_given_log = None
-
-        self.plotting_tools = PlottingTools()
 
     def reset(self):
         EpsilonDecayMixin.reset(self)
@@ -134,7 +124,7 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         self.prev_action = None
         self.steps_done = 0
         self.eligibility = torch.zeros((self.batch_size, self.num_actions))
-        self.reset_values_for_plots()
+        self.reset_values_for_logs()
 
     def perceive(self, observations, reward):
         new_state_vec = self.observations_to_vec(observations)
@@ -191,27 +181,6 @@ class DQNAgent(Agent, EpsilonDecayMixin):
     def observations_to_vec(self, observations):
         encoded = encode_observations_n_hot(observations, self.obs_cells, self.obs_symbols)
         return torch.tensor(encoded)
-
-    def episode_ended(self, stratum, program):
-        if len(self.q_values_arr_log[0]) < 15:
-            return
-        if random.random() > self.PLOT_PROBABILITY:
-            return
-
-        if self.PLOT_LOSS and len(self.last_losses_log) > 0:
-            self.plotting_tools.plot_array(y=self.last_losses_log, title=self.get_plot_title(stratum, program, "Loss"))
-
-        if self.PLOT_Q_VALUES and len(self.q_values_arr_log[0]) > 0:
-            self.plotting_tools.plot_multiple_array(self.q_values_arr_log,
-                                                    title=self.get_plot_title(stratum, program, "Q-values"))
-
-        if self.PLOT_REWARDS and len(self.rewards_given_log) > 0:
-            self.plotting_tools.plot_array(y=self.rewards_given_log,
-                                           title=self.get_plot_title(stratum, program, "Rewards"), type="o")
-
-        if self.PLOT_ACTIONS_TAKEN and len(self.actions_taken_log) > 0:
-            self.plotting_tools.plot_array(y=self.actions_taken_log,
-                                           title=self.get_plot_title(stratum, program, "Actions taken"), type="o")
 
     def get_action(self, state):
         """
@@ -287,9 +256,9 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         Agent.set_logging(self, logging_enabled)
 
         if self.logging_enabled:
-            self.reset_values_for_plots()
+            self.reset_values_for_logs()
 
-    def reset_values_for_plots(self):
+    def reset_values_for_logs(self):
         self.last_losses_log = list()
         self.actions_taken_log = list()
         self.rewards_given_log = list()
@@ -304,9 +273,6 @@ class DQNAgent(Agent, EpsilonDecayMixin):
                 return
         for i, q_value in enumerate(q_values):
             self.q_values_arr_log[i].append(q_value)
-
-    def get_plot_title(self, stratum, program, title):
-        return "%s for: S%s\n%s" % (title, stratum, program)
 
     def reset_trace(self):
         return torch.zeros((self.batch_size, self.num_actions))
@@ -323,35 +289,3 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         self.eligibility *= self.gamma * self.Lambda
         return q_val_error
 
-    def on_program_end(self, stratum, program):
-        agent = self.__str__().split("(")[0]
-        hashed_program = generate_md5(program)
-        filename = f"plots/{hashed_program}_{agent}.png"
-        plot_builder = PlotBuilder(f"{agent} on program: {program} in stratum: {stratum}", filename)
-
-        loss = self.last_losses_log
-        if self.PLOT_LOSS and loss and len(loss) > 0:
-            plot_builder.add_sub_plot(SubplotBuilder().called("Losses").has_data(loss).build())
-
-        rewards = self.rewards_given_log
-        if rewards and len(rewards) > 0:
-            plot_builder.add_sub_plot(SubplotBuilder().called("Rewards").has_data(rewards).typeof(PlotType.Dots)
-                                      .build())
-
-        actions = self.actions_taken_log
-        most_freq_action = 0
-        if self.PLOT_ACTIONS_TAKEN and actions and len(actions) > 0:
-            counter = Counter(actions)
-            most_freq_action = counter.most_common(1)[0][0]
-            plot_builder.add_sub_plot(SubplotBuilder().called("Taken actions").has_data(actions).typeof(PlotType.Dots)
-                                      .build())
-
-        q_values = self.q_values_arr_log
-        if self.PLOT_Q_VALUES and q_values and len(q_values) > 0 and len(q_values[most_freq_action]) > 100:
-            plot_builder.add_sub_plot(
-                SubplotBuilder()
-                .called(f"Q values of action {most_freq_action}")
-                .has_data(q_values[most_freq_action])
-                .build()
-            )
-            plot_builder.build()
