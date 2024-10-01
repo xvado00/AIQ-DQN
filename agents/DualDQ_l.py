@@ -115,7 +115,8 @@ class DualDQ_l(DQNAgent):
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 1)
         self.optimizer.step()
 
-        self.last_losses.append(loss.detach().item())
+        if self.logging_enabled:
+            self.last_losses_log.append(loss.detach().item())
 
         self.decay_epsilon_linear()
         self.steps_done += 1

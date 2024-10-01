@@ -108,11 +108,11 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         if len(self.state_for_saving) > self.neural_input_size:
             self.state_for_saving = self.state_for_saving[:self.neural_input_size]
 
-
-        self.last_losses = list()
-        self.q_values_arr = [[] for i in range(self.num_actions)]
-        self.actions_taken = list()
-        self.rewards_given = list()
+        # Used for logging and plotting
+        self.last_losses_log = None
+        self.q_values_arr_log = None
+        self.actions_taken_log = None
+        self.rewards_given_log = None
 
         self.plotting_tools = PlottingTools()
 
@@ -148,7 +148,9 @@ class DQNAgent(Agent, EpsilonDecayMixin):
                 new_state_with_history_unsqueezed,
                 torch.tensor(reward / self.REWARD_DIVIDER, dtype=torch.float32).unsqueeze(0)
             )
-        self.rewards_given.append(reward / self.REWARD_DIVIDER)
+
+        if self.logging_enabled:
+            self.rewards_given_log.append(reward / self.REWARD_DIVIDER)
 
         self.learn_from_experience()
 
@@ -165,10 +167,10 @@ class DQNAgent(Agent, EpsilonDecayMixin):
     def get_logs( self ) -> dict:
 
         return {
-            "losses": self.last_losses,
-            "rewards": self.rewards_given,
-            "actions": self.actions_taken,
-            "q_values": self.q_values_arr
+            "losses": self.last_losses_log,
+            "rewards": self.rewards_given_log,
+            "actions": self.actions_taken_log,
+            "q_values": self.q_values_arr_log
         }
 
     def save_prev_values(self, action, current_state, new_state_with_history_unsqueezed):
@@ -191,24 +193,24 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         return torch.tensor(encoded)
 
     def episode_ended(self, stratum, program):
-        if len(self.q_values_arr[0]) < 15:
+        if len(self.q_values_arr_log[0]) < 15:
             return
         if random.random() > self.PLOT_PROBABILITY:
             return
 
-        if self.PLOT_LOSS and len(self.last_losses) > 0:
-            self.plotting_tools.plot_array(y=self.last_losses, title=self.get_plot_title(stratum, program, "Loss"))
+        if self.PLOT_LOSS and len(self.last_losses_log) > 0:
+            self.plotting_tools.plot_array(y=self.last_losses_log, title=self.get_plot_title(stratum, program, "Loss"))
 
-        if self.PLOT_Q_VALUES and len(self.q_values_arr[0]) > 0:
-            self.plotting_tools.plot_multiple_array(self.q_values_arr,
+        if self.PLOT_Q_VALUES and len(self.q_values_arr_log[0]) > 0:
+            self.plotting_tools.plot_multiple_array(self.q_values_arr_log,
                                                     title=self.get_plot_title(stratum, program, "Q-values"))
 
-        if self.PLOT_REWARDS and len(self.rewards_given) > 0:
-            self.plotting_tools.plot_array(y=self.rewards_given,
+        if self.PLOT_REWARDS and len(self.rewards_given_log) > 0:
+            self.plotting_tools.plot_array(y=self.rewards_given_log,
                                            title=self.get_plot_title(stratum, program, "Rewards"), type="o")
 
-        if self.PLOT_ACTIONS_TAKEN and len(self.actions_taken) > 0:
-            self.plotting_tools.plot_array(y=self.actions_taken,
+        if self.PLOT_ACTIONS_TAKEN and len(self.actions_taken_log) > 0:
+            self.plotting_tools.plot_array(y=self.actions_taken_log,
                                            title=self.get_plot_title(stratum, program, "Actions taken"), type="o")
 
     def get_action(self, state):
@@ -226,7 +228,7 @@ class DQNAgent(Agent, EpsilonDecayMixin):
             action = self.compute_action_from_Q_value(state)
 
         if self.logging_enabled:
-            self.actions_taken.append(action)
+            self.actions_taken_log.append(action)
 
         return action
 
@@ -281,11 +283,17 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         """
         raise NotImplementedError()
 
+    def set_logging( self, logging_enabled: bool ):
+        Agent.set_logging(self, logging_enabled)
+
+        if self.logging_enabled:
+            self.reset_values_for_plots()
+
     def reset_values_for_plots(self):
-        self.last_losses = list()
-        self.actions_taken = list()
-        self.rewards_given = list()
-        self.q_values_arr = [[] for i in range(self.num_actions)]
+        self.last_losses_log = list()
+        self.actions_taken_log = list()
+        self.rewards_given_log = list()
+        self.q_values_arr_log = [[] for i in range(self.num_actions)]
 
     def append_q_values(self, q_values, state):
         if not self.logging_enabled:
@@ -295,7 +303,7 @@ class DQNAgent(Agent, EpsilonDecayMixin):
             if state_ref_i is not state_i:
                 return
         for i, q_value in enumerate(q_values):
-            self.q_values_arr[i].append(q_value)
+            self.q_values_arr_log[i].append(q_value)
 
     def get_plot_title(self, stratum, program, title):
         return "%s for: S%s\n%s" % (title, stratum, program)
@@ -321,16 +329,16 @@ class DQNAgent(Agent, EpsilonDecayMixin):
         filename = f"plots/{hashed_program}_{agent}.png"
         plot_builder = PlotBuilder(f"{agent} on program: {program} in stratum: {stratum}", filename)
 
-        loss = self.last_losses
+        loss = self.last_losses_log
         if self.PLOT_LOSS and loss and len(loss) > 0:
             plot_builder.add_sub_plot(SubplotBuilder().called("Losses").has_data(loss).build())
 
-        rewards = self.rewards_given
+        rewards = self.rewards_given_log
         if rewards and len(rewards) > 0:
             plot_builder.add_sub_plot(SubplotBuilder().called("Rewards").has_data(rewards).typeof(PlotType.Dots)
                                       .build())
 
-        actions = self.actions_taken
+        actions = self.actions_taken_log
         most_freq_action = 0
         if self.PLOT_ACTIONS_TAKEN and actions and len(actions) > 0:
             counter = Counter(actions)
@@ -338,7 +346,7 @@ class DQNAgent(Agent, EpsilonDecayMixin):
             plot_builder.add_sub_plot(SubplotBuilder().called("Taken actions").has_data(actions).typeof(PlotType.Dots)
                                       .build())
 
-        q_values = self.q_values_arr
+        q_values = self.q_values_arr_log
         if self.PLOT_Q_VALUES and q_values and len(q_values) > 0 and len(q_values[most_freq_action]) > 100:
             plot_builder.add_sub_plot(
                 SubplotBuilder()
