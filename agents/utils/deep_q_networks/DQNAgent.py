@@ -120,10 +120,12 @@ class DQNAgent(Agent, EpsilonDecayMixin):
 
         self.cached_states_raw = []
         self.states_history = torch.zeros((self.history_len, self.state_vec_size))
+        self.current_state_with_history = None
 
         self.prev_action = None
         self.steps_done = 0
         self.eligibility = torch.zeros((self.batch_size, self.num_actions))
+
         self.reset_values_for_logs()
 
     def perceive(self, observations, reward):
