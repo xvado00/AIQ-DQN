@@ -170,5 +170,5 @@ class DualDQ_l(DQNAgent):
                 + str(self.tau) + "," \
                 + str(self.update_interval_length) + "," \
                 + str(self.Lambda) + "," \
-                + str(self.eligibility_strategy_index) + "," \
+                + str(self.eligibility_strategy_index) + \
                 ")"
