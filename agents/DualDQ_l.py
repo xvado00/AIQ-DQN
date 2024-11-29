@@ -1,9 +1,12 @@
 
 #
 # Dual Network Deep Q-learning agent
-# with policy and target deep Q-network, replay memory, epsilon decay and eligibility traces.
+# with policy and target deep Q-network, replay memory, epsilon decay and (experimental) eligibility traces.
 # Human-level control through deep reinforcement learning
 #   by Volodymyr Mnih et al, 2015
+#
+# Deep Eligibility Traces
+#   by Karush Suri, 2021
 #
 # Copyright Michal Dvořák 2024
 # Copyright Ondřej Vadinský 2024
@@ -74,7 +77,7 @@ class DualDQ_l(DQNAgent):
                     Deep Q-Learning paper by Mnih et al. (2015).
         :param update_interval_length: Number of training steps that must pass before copying the weights from
                                        the policy network to the target network.
-        :param Lambda: λ parameter for eligibility traces
+        :param Lambda: λ parameter for eligibility traces (0.0: turns off)
         :param eligibility_strategy: Strategy for eligibility traces (0: replacement, 1: accumulation, 2: Dutch)
         """
         DQNAgent.__init__(self,

@@ -1,9 +1,12 @@
 
 #
 # Deep Q-learning agent
-# with single deep Q-network, replay memory, epsilon decay and eligibility traces.
+# with single deep Q-network, replay memory, epsilon decay and (experimental) eligibility traces.
 # Playing Atari with Deep Reinforcement Learning
 #   by Volodymyr Mnih et al, 2013
+#
+# Deep Eligibility Traces
+#   by Karush Suri, 2021
 #
 # Copyright Michal Dvořák 2024
 # Copyright Ondřej Vadinský 2024
